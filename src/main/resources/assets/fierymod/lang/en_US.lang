@@ -1,0 +1,20 @@
+itemGroup.fierymod=Fiery Mod
+
+item.EmberIngot.name=Ember Ingot
+item.IgnisIngot.name=Ignis Ingot
+item.EmberSword.name=Ember Sword
+item.EmberPickaxe.name=Ember Pickaxe
+item.EmberAxe.name=Ember Axe
+item.EmberShovel.name=Ember Shovel
+item.EmberHoe.name=Ember Hoe
+item.IgnisSword.name=Ignis Sword
+item.IgnisPickaxe.name=Ignis Pickaxe
+item.IgnisAxe.name=Ignis Axe
+item.IgnisShovel.name=Ignis Shovel
+item.IgnisHoe.name=Ignis Hoe
+
+tile.EmberOre.name=Ember Ore
+tile.NetherEmberOre.name=Nether Ember Ore
+tile.NetherIgnisOre.name=Nether Ignis Ore
+tile.EmberBlock.name=Block of Ember
+tile.IgnisBlock.name=Block of Ignis

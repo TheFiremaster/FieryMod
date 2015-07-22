@@ -1,0 +1,16 @@
+[
+{
+  "modid": "fierymod",
+  "name": "Firemaster's Fiery Mod",
+  "description": "A mod containing lots of fire.",
+  "version": "0.0.0",
+  "mcversion": "1.7.10",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["_Firemaster_"],
+  "credits": "MrCrayfish and Neale Gaming for their awesome modding tutorials.",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
