@@ -50,6 +50,9 @@ public class FieryMod {
 	public static Block blockEmberBlock;
 	public static Block blockIgnisBlock;
 	
+	public static Block blockNetherBrickFurnaceIdle;
+	public static Block blockNetherBrickFurnaceActive;
+	
 	@EventHandler
 	public void PreInit(FMLPreInitializationEvent event) {
 		// Item and block initialization and registry; Config file handling.
@@ -77,6 +80,10 @@ public class FieryMod {
 		oreNetherIgnisOre	= new OreBlock("NetherIgnisOre");
 		blockEmberBlock		= new EmberBlock();
 		blockIgnisBlock		= new IgnisBlock();
+		
+		blockNetherBrickFurnaceIdle 	= new NetherBrickFurnace(false);
+		blockNetherBrickFurnaceActive	= new NetherBrickFurnace(true);
+		
 		
 		GameRegistry.registerWorldGenerator(fieryWorldGen, 0);
 	}
