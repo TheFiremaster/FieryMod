@@ -1,7 +1,9 @@
 package com.firemaster.mod.blocks;
 
 import com.firemaster.mod.FieryMod;
+import com.firemaster.mod.tileentity.TileEntityNetherFurnace;
 
+import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -10,6 +12,7 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -93,12 +96,17 @@ public class NetherBrickFurnace extends BlockContainer {
 		}
 	}
 	
-	// TODO: onBlockActivate
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
+		if (!world.isRemote) {
+			FMLNetworkHandler.openGui(player, FieryMod.instance, FieryMod.guiIDNetherBrickFurnace, world, x, y, z);
+		}
+		
+		return true;
+	}
 
 	@Override
-	public TileEntity createNewTileEntity(World p_149915_1_, int p_149915_2_) {
-		// TODO Auto-generated method stub
-		return null;
+	public TileEntity createNewTileEntity(World world, int i) {
+		return new TileEntityNetherFurnace();
 	}
 	
 	// TODO: randomDisplayTick
@@ -117,7 +125,7 @@ public class NetherBrickFurnace extends BlockContainer {
 		}
 		
 		if (itemStack.hasDisplayName()) {
-			// TODO: ((TileEntityNetherFurnace)world.getTileEntity(x, y, z)).setGuiDisplayName(itemStack.getDisplayName());
+			((TileEntityNetherFurnace)world.getTileEntity(x, y, z)).setGuiDisplayName(itemStack.getDisplayName());
 		}
 	}
 }

@@ -1,14 +1,18 @@
 package com.firemaster.mod;
 
 import com.firemaster.mod.blocks.*;
+import com.firemaster.mod.handler.GuiHandler;
 import com.firemaster.mod.items.*;
+import com.firemaster.mod.tileentity.TileEntityNetherFurnace;
 import com.firemaster.mod.worldgen.FieryWorldGen;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
+import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
@@ -24,7 +28,8 @@ public class FieryMod {
 	public static final String ModName 		= "Firemaster's Fiery Mod";
 	public static final String ModVersion 	= "0.0.0";
 	
-	FieryWorldGen fieryWorldGen = new FieryWorldGen();
+	@Instance(ModId)
+	public static FieryMod instance;
 	
 	public static ToolMaterial emberMaterial = EnumHelper.addToolMaterial("emberMaterial", 2, 650, 6.5f, 2.5f, 12);
 	public static ToolMaterial ignisMaterial = EnumHelper.addToolMaterial("ignisMaterial", 3, 2250, 9.0f, 3.5f, 18);
@@ -50,6 +55,7 @@ public class FieryMod {
 	public static Block blockEmberBlock;
 	public static Block blockIgnisBlock;
 	
+	public static final int guiIDNetherBrickFurnace = 0;
 	public static Block blockNetherBrickFurnaceIdle;
 	public static Block blockNetherBrickFurnaceActive;
 	
@@ -85,12 +91,15 @@ public class FieryMod {
 		blockNetherBrickFurnaceActive	= new NetherBrickFurnace(true);
 		
 		
-		GameRegistry.registerWorldGenerator(fieryWorldGen, 0);
+		GameRegistry.registerWorldGenerator(new FieryWorldGen(), 0);
 	}
 	
 	@EventHandler
 	public void Init(FMLInitializationEvent event) {
-		// Primarily about registering recipes/smelting.
+		// Primarily about registering recipes, smelting, entities, network, etc.
+		NetworkRegistry.INSTANCE.registerGuiHandler(this, new GuiHandler());
+		
+		GameRegistry.registerTileEntity(TileEntityNetherFurnace.class, "NetherBrickFurnace");
 		
 		// Crafting Recipes
 		GameRegistry.addRecipe(new ItemStack(blockEmberBlock), new Object[] {"EEE", "EEE", "EEE", 'E', itemEmberIngot});
