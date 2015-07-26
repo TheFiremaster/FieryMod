@@ -10,6 +10,9 @@ import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.FurnaceRecipes;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 
 public class TileEntityNetherFurnace extends TileEntity implements ISidedInventory {
@@ -44,38 +47,60 @@ public class TileEntityNetherFurnace extends TileEntity implements ISidedInvento
 
 	@Override
 	public ItemStack getStackInSlot(int slot) {
-		// TODO Auto-generated method stub
-		return null;
+		return this.slots[slot];
 	}
 
 	@Override
-	public ItemStack decrStackSize(int p_70298_1_, int p_70298_2_) {
-		// TODO Auto-generated method stub
+	public ItemStack decrStackSize(int slot, int num) {
+		if (this.slots[slot] != null) {
+			ItemStack itemStack;
+			
+			if (this.slots[slot].stackSize < num) {
+				itemStack = this.slots[slot];
+				this.slots[slot] = null;
+				return itemStack;
+			} else {
+				itemStack = this.slots[slot].splitStack(num);
+				
+				if (this.slots[slot].stackSize == 0) {
+					this.slots[slot] = null;
+				}
+				
+				return itemStack;
+			}
+		}
+
 		return null;
 	}
 
 	@Override
 	public ItemStack getStackInSlotOnClosing(int slot) {
-		// TODO Auto-generated method stub
+		if (this.slots[slot] != null) {
+			ItemStack itemStack = this.slots[slot];
+			this.slots[slot] = null;
+			return itemStack;
+		}
+		
 		return null;
 	}
 
 	@Override
 	public void setInventorySlotContents(int slot, ItemStack itemStack) {
-		// TODO Auto-generated method stub
+		this.slots[slot] = itemStack;
 		
+		if (itemStack != null && itemStack.stackSize > this.getInventoryStackLimit()) {
+			itemStack.stackSize = this.getInventoryStackLimit();
+		}
 	}
 
 	@Override
 	public int getInventoryStackLimit() {
-		// TODO Auto-generated method stub
-		return 0;
+		return 64;
 	}
 
 	@Override
-	public boolean isUseableByPlayer(EntityPlayer p_70300_1_) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean isUseableByPlayer(EntityPlayer player) {
+		return this.worldObj.getTileEntity(this.xCoord, this.yCoord, this.zCoord) != this ? false : player.getDistanceSq((double)this.xCoord + 0.5, (double)this.yCoord + 0.5, (double)this.zCoord + 0.5) <= 64.0;
 	}
 
 	public void openInventory() {}
@@ -86,11 +111,11 @@ public class TileEntityNetherFurnace extends TileEntity implements ISidedInvento
 		return slot == 2 ? false : (slot == 1 ? isItemFuel(itemStack) : true);
 	}
 	
-	private boolean isItemFuel(ItemStack itemStack) {
+	public static boolean isItemFuel(ItemStack itemStack) {
 		return getItemBurnTime(itemStack) > 0;
 	}
 
-	private int getItemBurnTime(ItemStack itemStack) {
+	private static int getItemBurnTime(ItemStack itemStack) {
 		if (itemStack == null) {
 			return 0;
 		} else {
@@ -111,6 +136,52 @@ public class TileEntityNetherFurnace extends TileEntity implements ISidedInvento
 		}
 
 		return 0;
+	}
+	
+	public boolean isBurning() {
+		return this.burnTime > 0;
+	}
+	
+	public boolean canSmelt() {
+		if (this.slots[0] == null) {
+			return false;
+		} else {
+			ItemStack itemStack = FurnaceRecipes.smelting().getSmeltingResult(this.slots[0]);
+			
+			if (itemStack == null) {
+				return false;
+			}
+			
+			if (this.slots[2] == null) {
+				return true;
+			}
+			
+			if (!this.slots[2].isItemEqual(itemStack)) {
+				return false;
+			}
+			
+			int result = this.slots[2].stackSize + itemStack.stackSize;
+			
+			return (result <= this.slots[2].getMaxStackSize() && result <= this.getInventoryStackLimit());
+		}
+	}
+	
+	public void smeltItem() {
+		if (this.canSmelt()) {
+			ItemStack itemStack = FurnaceRecipes.smelting().getSmeltingResult(this.slots[0]);
+			
+			if (this.slots[2] == null) {
+				this.slots[2] = itemStack.copy();
+			} else if (this.slots[2].isItemEqual(itemStack)) {
+				this.slots[2].stackSize += itemStack.stackSize;
+			}
+			
+			this.slots[0].stackSize--;
+			
+			if (this.slots[0].stackSize <= 0) {
+				this.slots[0] = null;
+			}
+		}
 	}
 	
 	public void updateEntity() {
@@ -180,5 +251,66 @@ public class TileEntityNetherFurnace extends TileEntity implements ISidedInvento
 	@Override
 	public boolean canExtractItem(int slot, ItemStack itemStack, int side) {
 		return slot != 0 || slot != 1 || itemStack.getItem() == Items.bucket;
+	}
+	
+	public int getBurnTimeRemainingScaled(int i) {
+		if (this.currentItemBurnTime == 0) {
+			this.currentItemBurnTime = this.furnaceSpeed;
+		}
+		
+		return this.burnTime * i / this.currentItemBurnTime;
+	}
+	
+	public int getCookProgressScaled(int i) {
+		return this.cookTime * i / this.furnaceSpeed;
+	}
+	
+	public void readFromNBT(NBTTagCompound nbt) {
+		super.readFromNBT(nbt);
+		
+		NBTTagList list = nbt.getTagList("Items", 10);
+		this.slots = new ItemStack[this.getSizeInventory()];
+		
+		for (int i = 0; i < list.tagCount(); i++) {
+			NBTTagCompound compound = (NBTTagCompound)list.getCompoundTagAt(i);
+			byte b = compound.getByte("Slot");
+			
+			if (b >= 0 && b < this.slots.length) {
+				this.slots[b] = ItemStack.loadItemStackFromNBT(compound);
+			}
+		}
+		
+		this.burnTime = (int)nbt.getShort("BurnTime");
+		this.cookTime = (int)nbt.getShort("CookTime");
+		this.currentItemBurnTime = (int)nbt.getShort("CurrentItemBurnTime");
+		
+		if (nbt.hasKey("CustomName")) {
+			this.localizedName = nbt.getString("CustomName");
+		}
+	}
+	
+	public void writeToNBT(NBTTagCompound nbt) {
+		super.writeToNBT(nbt);
+		
+		nbt.setShort("BurnTime", (short)this.burnTime);
+		nbt.setShort("CookTime", (short)this.cookTime);
+		nbt.setShort("CurrentItemBurnTime", (short)this.currentItemBurnTime);
+		
+		NBTTagList list = new NBTTagList();
+		
+		for (int i = 0; i < this.slots.length; i++) {
+			if (this.slots[i] != null) {
+				NBTTagCompound compound = new NBTTagCompound();
+				compound.setByte("Slot", (byte)i);
+				this.slots[i].writeToNBT(compound);
+				list.appendTag(compound);
+			}
+		}
+		
+		nbt.setTag("Items", list);
+		
+		if (this.hasCustomInventoryName()) {
+			nbt.setString("CustomName", this.localizedName);
+		}
 	}
 }

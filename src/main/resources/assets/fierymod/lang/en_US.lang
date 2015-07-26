@@ -18,3 +18,7 @@ tile.NetherEmberOre.name=Nether Ember Ore
 tile.NetherIgnisOre.name=Nether Ignis Ore
 tile.EmberBlock.name=Block of Ember
 tile.IgnisBlock.name=Block of Ignis
+tile.NetherBrickFurnaceInactive.name=Nether Brick Furnace
+tile.NetherBrickFurnaceActive.name=Nether Brick Furnace
+
+container.NetherBrickFurnace=Nether Brick Furnace

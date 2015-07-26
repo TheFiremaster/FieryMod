@@ -1,5 +1,7 @@
 package com.firemaster.mod.blocks;
 
+import java.util.Random;
+
 import com.firemaster.mod.FieryMod;
 import com.firemaster.mod.tileentity.TileEntityNetherFurnace;
 
@@ -12,9 +14,11 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
@@ -28,8 +32,13 @@ public class NetherBrickFurnace extends BlockContainer {
 	@SideOnly(Side.CLIENT)
 	private IIcon topIcon;
 	
+	private static boolean keepInventory;
+	private Random rand = new Random();
+	
 	public NetherBrickFurnace(boolean active) {
 		super(Material.rock);
+		
+		this.setHardness(3.5f);
 		
 		this.isActive = active;
 		if (active) {
@@ -52,10 +61,15 @@ public class NetherBrickFurnace extends BlockContainer {
 	
 	@SideOnly(Side.CLIENT)
 	public IIcon getIcon(int side, int metadata) {
+		// For in inventory.
+		if (metadata == 0 && side == 3) {
+			return this.frontIcon;
+		}
+		
 		return side == 1 ? this.topIcon : (side == 0 ? this.topIcon : (side != metadata ? this.blockIcon : this.frontIcon));
 	}
 	
-	public Item getItemDropped(World world, int x, int y, int z) {
+	public Item getItemDropped(int i, Random random, int j) {
 		return Item.getItemFromBlock(FieryMod.blockNetherBrickFurnaceIdle);
 	}
 	
@@ -109,7 +123,33 @@ public class NetherBrickFurnace extends BlockContainer {
 		return new TileEntityNetherFurnace();
 	}
 	
-	// TODO: randomDisplayTick
+	@SideOnly(Side.CLIENT)
+	public void randomDisplayTick(World world, int x, int y, int z, Random random) {
+		if (this.isActive) {
+			int direction = world.getBlockMetadata(x, y, z);
+			
+			float x1 = (float)x + 0.5f;
+			float y1 = (float)y + random.nextFloat();
+			float z1 = (float)z + 0.5f;
+			
+			float f = 0.52f;
+			float f1 = random.nextFloat() * 0.6f - 0.3f;
+			
+			if (direction == 4) {
+				world.spawnParticle("smoke", (double)(x1 - f), (double)y1, (double)(z1 + f1), 0, 0, 0);
+				world.spawnParticle("flame", (double)(x1 - f), (double)y1, (double)(z1 + f1), 0, 0, 0);
+			} else if (direction == 5) {
+				world.spawnParticle("smoke", (double)(x1 + f), (double)y1, (double)(z1 + f1), 0, 0, 0);
+				world.spawnParticle("flame", (double)(x1 + f), (double)y1, (double)(z1 + f1), 0, 0, 0);
+			} else if (direction == 2) {
+				world.spawnParticle("smoke", (double)(x1 + f1), (double)y1, (double)(z1 - f), 0, 0, 0);
+				world.spawnParticle("flame", (double)(x1 + f1), (double)y1, (double)(z1 - f), 0, 0, 0);
+			} else if (direction == 3) {
+				world.spawnParticle("smoke", (double)(x1 + f1), (double)y1, (double)(z1 + f), 0, 0, 0);
+				world.spawnParticle("flame", (double)(x1 + f1), (double)y1, (double)(z1 + f), 0, 0, 0);
+			}
+		}
+	}
 	
 	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entityPlayer, ItemStack itemStack) {
 		int l = MathHelper.floor_double((double)(entityPlayer.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
@@ -127,5 +167,68 @@ public class NetherBrickFurnace extends BlockContainer {
 		if (itemStack.hasDisplayName()) {
 			((TileEntityNetherFurnace)world.getTileEntity(x, y, z)).setGuiDisplayName(itemStack.getDisplayName());
 		}
+	}
+
+	public static void updateNetherBrickFurnaceBlockState(boolean active, World worldObj, int xCoord, int yCoord, int zCoord) {
+		int i = worldObj.getBlockMetadata(xCoord, yCoord, zCoord);
+		
+		TileEntity entity = worldObj.getTileEntity(xCoord, yCoord, zCoord);
+		keepInventory = true;
+		
+		if (active) {
+			worldObj.setBlock(xCoord, yCoord, zCoord, FieryMod.blockNetherBrickFurnaceActive);
+		} else {
+			worldObj.setBlock(xCoord, yCoord, zCoord, FieryMod.blockNetherBrickFurnaceIdle);
+		}
+		
+		keepInventory = false;
+		
+		worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, i, 2);
+		
+		if (entity != null) {
+			entity.validate();
+			worldObj.setTileEntity(xCoord, yCoord, zCoord, entity);
+		}
+	}
+	
+	public void breakBlock(World world, int x, int y, int z, Block oldBlock, int metadata) {
+		if (!keepInventory) {
+			TileEntityNetherFurnace entity = (TileEntityNetherFurnace)world.getTileEntity(x, y, z);
+			
+			if (entity != null) {
+				for (int i = 0; i < entity.getSizeInventory(); i++) {
+					ItemStack stack = entity.getStackInSlot(i);
+					
+					if (stack != null) {
+						float f = this.rand.nextFloat() * 0.8f + 0.1f;
+						float f1 = this.rand.nextFloat() * 0.8f + 0.1f;
+						float f2 = this.rand.nextFloat() * 0.8f + 0.1f;
+
+						
+						while (stack.stackSize > 0) {
+							int j = this.rand.nextInt(21) + 10;
+							
+							if (j > stack.stackSize) {
+								j = stack.stackSize;
+							}
+							
+							stack.stackSize -= j;
+							
+							EntityItem item = new EntityItem(world, (double)((float)x + f), (double)((float)y + f1), (double)((float)z + f2), new ItemStack(stack.getItem(), j, stack.getItemDamage()));
+							
+							if (stack.hasTagCompound()) {
+								item.getEntityItem().setTagCompound((NBTTagCompound)stack.getTagCompound().copy());
+							}
+							
+							world.spawnEntityInWorld(item);
+						}
+					}
+				}
+				
+				world.func_147453_f(x, y, z, oldBlock);
+			}
+		}
+		
+		super.breakBlock(world, x, y, z, oldBlock, metadata);
 	}
 }
