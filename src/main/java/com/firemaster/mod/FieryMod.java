@@ -81,9 +81,9 @@ public class FieryMod {
 		itemIgnisShovel		= new IgnisShovel();
 		itemIgnisHoe		= new IgnisHoe();
 		
-		oreEmberOre			= new OreBlock("EmberOre");
-		oreNetherEmberOre	= new OreBlock("NetherEmberOre");
-		oreNetherIgnisOre	= new OreBlock("NetherIgnisOre");
+		oreEmberOre			= new OreBlock("EmberOre", 2);
+		oreNetherEmberOre	= new OreBlock("NetherEmberOre", 2);
+		oreNetherIgnisOre	= new OreBlock("NetherIgnisOre", 3);
 		blockEmberBlock		= new EmberBlock();
 		blockIgnisBlock		= new IgnisBlock();
 		

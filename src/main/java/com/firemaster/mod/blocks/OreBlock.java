@@ -7,7 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 
 public class OreBlock extends Block {
-	public OreBlock(String unlocName) {
+	public OreBlock(String unlocName, int harvestLevel) {
 		super(Material.rock);
 		
 		this.setBlockName(unlocName);
@@ -17,6 +17,7 @@ public class OreBlock extends Block {
 		this.setHardness(3.0f);
 		this.setResistance(5.0f);
 		this.setStepSound(soundTypeStone);
+		this.setHarvestLevel("pickaxe", harvestLevel);
 		
 		GameRegistry.registerBlock(this, getUnlocalizedName().substring(5));
 	}
