@@ -45,7 +45,6 @@ public class IgnisPickaxe extends ItemPickaxe {
         // If the player is looking at lava, remove the lava and restore the pick's durability by (up to) 550.
         if (material == Material.lava) {
         	world.setBlock(x, y, z, Blocks.air);
-    		System.out.println("Item Damage Before: " + itemStack.getItemDamage());
         	
         	// Don't repair beyond full durability.
         	if (itemStack.getItemDamage() - 250 < 0) {
@@ -53,8 +52,6 @@ public class IgnisPickaxe extends ItemPickaxe {
         	} else {
         		itemStack.setItemDamage(itemStack.getItemDamage() - 250);
         	}
-        	
-    		System.out.println("Item Damage After: " + itemStack.getItemDamage());
         }
 		
 		return itemStack;
@@ -97,7 +94,7 @@ public class IgnisPickaxe extends ItemPickaxe {
 		float f1 = player.worldObj.rand.nextFloat() * 0.8f + 0.1f;
 		float f2 = player.worldObj.rand.nextFloat() * 0.8f + 0.1f;
 		for (int i = 0; i < toSpawn; i++) {
-			EntityItem item = new EntityItem(player.worldObj, (double)((float)X + f), (double)((float)Y + f1), (double)((float)Z + f2), new ItemStack(blockItem.getItem(), 1));
+			EntityItem item = new EntityItem(player.worldObj, (double)((float)X + f), (double)((float)Y + f1), (double)((float)Z + f2), new ItemStack(blockItem.getItem(), 1, blockItem.getItemDamage()));
 			
 			if (blockItem.hasTagCompound()) {
 				item.getEntityItem().setTagCompound((NBTTagCompound)blockItem.getTagCompound().copy());
@@ -107,13 +104,13 @@ public class IgnisPickaxe extends ItemPickaxe {
 		}
 		
 		// Finally, spawn some flame particles where the block was.
-		/*for (int i = 0; i < 30; i++) {
+		for (int i = 0; i < 30; i++) {
 			float xPos = (float)X + player.worldObj.rand.nextFloat() - 0.5f;
 			float yPos = (float)Y + player.worldObj.rand.nextFloat() - 0.5f;
 			float zPos = (float)Z + player.worldObj.rand.nextFloat() - 0.5f;
 			
 			player.worldObj.spawnParticle("flame", (double)xPos, (double)yPos, (double)zPos, 0.0, 0.0, 0.0);
-		}*/
+		}
 		
 		return true;
 	}
